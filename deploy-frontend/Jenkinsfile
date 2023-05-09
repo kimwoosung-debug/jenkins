@@ -12,14 +12,14 @@ pipeline {
             steps {
                 sh  """
                     echo ${WORKSPACE}
-                    git clone https://github.com/kimdragon50/facam-frontend.git
+                    git clone https://github.com/kimwoosung-debug/frontend.git
                     """
             }
         }
         stage ('npm build') {
             steps {
                 sh  """
-                    cd facam-frontend
+                    cd frontend
                     npm install
                     npm run build
                     """
@@ -27,11 +27,22 @@ pipeline {
         }
         stage ('Ansible Deploy') {
             steps {
-                sh  """
-                    git clone https://github.com/kimdragon50/facam-ansible.git 
-                    cd  facam-ansible 
-                    ansible-playbook deploy_frontend.yml -i ./hosts/hosts --extra-vars "deploy_hosts=app" 
-                    """
+                script {
+
+                    MY_KEYPAIR_NAME = ""
+                    MY_APP_PRIVATE_IP = ""
+
+                    sh  """
+                        git clone https://github.com/kimwoosung-debug/ansible.git
+                        cd ansible 
+
+                        sed -i 's/MY_KEYPAIR_NAME/${MY_KEYPAIR_NAME}/g' hosts/hosts
+                        sed -i 's/MY_APP_PRIVATE_IP/${MY_APP_PRIVATE_IP}/g' hosts/hosts
+
+                        ansible-playbook deploy_frontend.yml -i ./hosts/hosts --extra-vars "deploy_hosts=app" 
+                        """
+                }
+                
             }
         }
     }
